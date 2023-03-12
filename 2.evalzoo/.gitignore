@@ -1,0 +1,9 @@
+!*parquet
+!*csv
+!*png
+data
+collatedindex.parquet
+collatedsim.parquet
+index.parquet
+profiles.parquet
+*value_files
