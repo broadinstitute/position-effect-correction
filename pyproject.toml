@@ -16,6 +16,7 @@ requests = "^2.28.2"
 matplotlib = "^3.7.0"
 plotly = "^5.13.0"
 s3fs = "^2023.1.0"
+fire = "^0.5.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.1.0"
