@@ -58,6 +58,9 @@ def load_profiles(
         assert isinstance(columns, list), "`columns` must be a list"
         logging.info(f"Loading columns: {columns}")
 
+    if batch is None:
+        assert plate is None, "`plate` must be None if `batch` is None"
+
     dataset_source = f"/{dataset}/{source}/workspace/profiles"
 
     if batch is not None:
