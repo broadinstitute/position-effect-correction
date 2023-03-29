@@ -2,6 +2,7 @@
 
 import pyarrow as pa
 import pyarrow.dataset as ds
+import pyarrow.parquet as pq
 from pyarrow.dataset import DirectoryPartitioning
 import logging
 
@@ -83,18 +84,15 @@ def load_profiles(
 
     logging.info(f"Found {len(dataset.files)} files")
 
-    logging.info("Loading profiles...")
+    logging.info("Load profiles...")
 
-    if columns is not None:
-        df = dataset.to_table(columns=columns).to_pandas()
-    else:
-        df = dataset.to_table().to_pandas()
+    df = dataset.to_table(columns=columns)
 
     if output is not None:
         logging.info(f"Writing profiles to {output}")
-        df.to_parquet(output, index=False)
+        pq.write_table(df, output)
     else:
-        return df
+        return df.to_pandas()
 
 
 import fire
