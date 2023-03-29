@@ -6,7 +6,11 @@ import pyarrow.parquet as pq
 from pyarrow.dataset import DirectoryPartitioning
 import logging
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    format="%(asctime)s %(levelname)-8s %(message)s",
+    level=logging.INFO,
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 
 
 def load_profiles(
@@ -104,7 +108,7 @@ if __name__ == "__main__":
 
 # python load_profiles.py \
 #   cpg0016-jump \
-#   source_4
+#   source_4 \
 #   --columns [Metadata_Source,Metadata_Plate,Metadata_Well,Cells_AreaShape_Eccentricity,Nuclei_AreaShape_Area] \
 #   --batch 2021_06_14_Batch6 \
 #   --output ~/Desktop/test.parquet
