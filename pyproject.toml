@@ -8,13 +8,14 @@ readme = "README.md"
 packages = [{include = "position_effect_correction"}]
 
 [tool.poetry.dependencies]
-python = ">3.8"
+python = ">=3.9"
 pandas = "^1.5.3"
 arrow = "^1.2.3"
 pyarrow = "^11.0.0"
 matplotlib = "^3.7.0"
 plotly = "^5.13.0"
 s3fs = "^2023.1.0"
+fire = "^0.5.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.1.0"
