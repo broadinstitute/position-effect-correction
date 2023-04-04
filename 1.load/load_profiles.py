@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
+import s3fs
 import pyarrow as pa
 import pyarrow.dataset as ds
 import pyarrow.parquet as pq
 from pyarrow.dataset import DirectoryPartitioning
 import logging
+import fire
 
 logging.basicConfig(
     format="%(asctime)s %(levelname)-8s %(message)s",
@@ -61,7 +63,7 @@ def load_profiles(
     if batch is None:
         assert plate is None, "`plate` must be None if `batch` is None"
 
-    dataset_source = f"/{dataset}/{source}/workspace/profiles"
+    dataset_source = f"cellpainting-gallery/{dataset}/{source}/workspace/profiles"
 
     if batch is not None:
         dataset_source += f"/{batch}"
@@ -72,7 +74,8 @@ def load_profiles(
 
     dataset = ds.dataset(
         source=dataset_source,
-        filesystem="s3://cellpainting-gallery",
+        # use s3fs for faster download, see https://github.com/apache/arrow/issues/14336
+        filesystem=s3fs.S3FileSystem(anon=True),
         partitioning=DirectoryPartitioning(
             pa.schema(
                 [
@@ -102,8 +105,6 @@ def load_profiles(
         return df.to_pandas()
 
 
-import fire
-
 if __name__ == "__main__":
     fire.Fire(load_profiles)
 
@@ -112,6 +113,6 @@ if __name__ == "__main__":
 # python load_profiles.py \
 #   cpg0016-jump \
 #   source_4 \
-#   --columns [Metadata_Source,Metadata_Plate,Metadata_Well,Cells_AreaShape_Eccentricity,Nuclei_AreaShape_Area] \
+#   --columns "[Metadata_Source,Metadata_Plate,Metadata_Well,Cells_AreaShape_Eccentricity,Nuclei_AreaShape_Area]" \
 #   --batch 2021_06_14_Batch6 \
 #   --output ~/Desktop/test.parquet
