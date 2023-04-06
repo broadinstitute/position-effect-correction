@@ -13,15 +13,16 @@ logging.basicConfig(
 )
 
 
-def load_profiles(
+def load(
     dataset: str,
     source: str,
+    component: str,
     batch: str = None,
     plate: str = None,
     columns: list = None,
     output: str = None,
 ):
-    """Load profiles from a source directory, optionally filtering by batch and plate.
+    """Load data components from a source directory, optionally filtering by batch and plate.
 
     Parameters
     ----------
@@ -30,6 +31,9 @@ def load_profiles(
 
     source : str
         Source directory.
+
+    component : str
+        Component name (currently only "profiles" or "load_data_csv").
 
     batch : str, optional
         Batch name, by default None
@@ -58,10 +62,15 @@ def load_profiles(
         assert isinstance(columns, list), "`columns` must be a list"
         logging.info(f"Loading columns: {columns}")
 
+    assert component in [
+        "profiles",
+        "load_data_csv",
+    ], "`component` must be 'profiles' or 'load_data_csv'"
+
     if batch is None:
         assert plate is None, "`plate` must be None if `batch` is None"
 
-    dataset_source = f"/{dataset}/{source}/workspace/profiles"
+    dataset_source = f"/{dataset}/{source}/workspace/{component}"
 
     if batch is not None:
         dataset_source += f"/{batch}"
@@ -79,7 +88,7 @@ def load_profiles(
                     ("dataset", pa.string()),
                     ("source", pa.string()),
                     ("workspace", pa.string()),
-                    ("profiles", pa.string()),
+                    (component, pa.string()),
                     ("batch", pa.string()),
                     ("plate", pa.string()),
                 ],
@@ -91,12 +100,12 @@ def load_profiles(
 
     logging.info(f"Found {len(dataset.files)} files")
 
-    logging.info("Load profiles...")
+    logging.info(f"Load {component}...")
 
     df = dataset.to_table(columns=columns)
 
     if output is not None:
-        logging.info(f"Writing profiles to {output}")
+        logging.info(f"Writing {component} to {output}")
         pq.write_table(df, output)
     else:
         return df.to_pandas()
@@ -105,13 +114,15 @@ def load_profiles(
 import fire
 
 if __name__ == "__main__":
-    fire.Fire(load_profiles)
+    fire.Fire(load)
 
 # Example usage
 
-# python load_profiles.py \
+# python load.py \
 #   cpg0016-jump \
 #   source_4 \
+#   profiles \
 #   --columns [Metadata_Source,Metadata_Plate,Metadata_Well,Cells_AreaShape_Eccentricity,Nuclei_AreaShape_Area] \
 #   --batch 2021_06_14_Batch6 \
+#   --plate BR00121429 \
 #   --output ~/Desktop/test.parquet
