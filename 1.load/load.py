@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
+import s3fs
 import pyarrow as pa
 import pyarrow.dataset as ds
 import pyarrow.parquet as pq
 from pyarrow.dataset import DirectoryPartitioning
 import logging
+import fire
 
 logging.basicConfig(
     format="%(asctime)s %(levelname)-8s %(message)s",
@@ -70,7 +72,7 @@ def load(
     if batch is None:
         assert plate is None, "`plate` must be None if `batch` is None"
 
-    dataset_source = f"/{dataset}/{source}/workspace/{component}"
+    dataset_source = f"cellpainting-gallery/{dataset}/{source}/workspace/profiles"
 
     if batch is not None:
         dataset_source += f"/{batch}"
@@ -81,7 +83,8 @@ def load(
 
     dataset = ds.dataset(
         source=dataset_source,
-        filesystem="s3://cellpainting-gallery",
+        # use s3fs for faster download, see https://github.com/apache/arrow/issues/14336
+        filesystem=s3fs.S3FileSystem(anon=True),
         partitioning=DirectoryPartitioning(
             pa.schema(
                 [
@@ -111,8 +114,6 @@ def load(
         return df.to_pandas()
 
 
-import fire
-
 if __name__ == "__main__":
     fire.Fire(load)
 
@@ -121,8 +122,10 @@ if __name__ == "__main__":
 # python load.py \
 #   cpg0016-jump \
 #   source_4 \
-#   profiles \
-#   --columns [Metadata_Source,Metadata_Plate,Metadata_Well,Cells_AreaShape_Eccentricity,Nuclei_AreaShape_Area] \
+#   --columns "[Metadata_Source,Metadata_Plate,Metadata_Well,Cells_AreaShape_Eccentricity,Nuclei_AreaShape_Area]" \
 #   --batch 2021_06_14_Batch6 \
 #   --plate BR00121429 \
 #   --output ~/Desktop/test.parquet
+#
+# print the top 5 rows
+# python -c "import pandas as pd; print(pd.read_parquet('~/Desktop/test.parquet').head())"
