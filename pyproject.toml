@@ -18,6 +18,7 @@ s3fs = "^2023.1.0"
 fire = "^0.5.0"
 networkx = "^3.1"
 scipy = "^1.10.1"
+seaborn = "^0.12.2"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.1.0"
