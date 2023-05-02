@@ -137,3 +137,6 @@ dmypy.json
 
 # MacOS
 .DS_Store
+
+# Archived
+*.gz
