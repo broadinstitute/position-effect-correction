@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
 
+import logging
+from typing import Optional
+
+import pandas as pd
+
 import s3fs
 import pyarrow as pa
 import pyarrow.dataset as ds
 import pyarrow.parquet as pq
 from pyarrow.dataset import DirectoryPartitioning
-import logging
+
 import fire
 
 logging.basicConfig(
@@ -23,7 +28,7 @@ def load(
     plate: str = None,
     columns: list = None,
     output: str = None,
-):
+) -> Optional[pd.DataFrame]:
     """Load data components from a source directory, optionally filtering by batch and plate.
 
     Parameters
@@ -51,8 +56,21 @@ def load(
 
     Returns
     -------
-    pandas.DataFrame
-        Profiles.
+    Optional[pd.DataFrame]
+        Pandas DataFrame if `output` is None, else None.
+
+    Examples
+    --------
+    >>> python load.py \
+    >>> cpg0016-jump \
+    >>> source_4 \
+    >>> --columns "[Metadata_Source,Metadata_Plate,Metadata_Well,Cells_AreaShape_Eccentricity,Nuclei_AreaShape_Area]" \
+    >>> --batch 2021_06_14_Batch6 \
+    >>> --plate BR00121429 \
+    >>> --output ~/Desktop/test.parquet
+    
+    Print the top 5 rows
+    >>> python -c "import pandas as pd; print(pd.read_parquet('~/Desktop/test.parquet').head())"
     """
 
     # Checks
@@ -116,16 +134,3 @@ def load(
 
 if __name__ == "__main__":
     fire.Fire(load)
-
-# Example usage
-
-# python load.py \
-#   cpg0016-jump \
-#   source_4 \
-#   --columns "[Metadata_Source,Metadata_Plate,Metadata_Well,Cells_AreaShape_Eccentricity,Nuclei_AreaShape_Area]" \
-#   --batch 2021_06_14_Batch6 \
-#   --plate BR00121429 \
-#   --output ~/Desktop/test.parquet
-#
-# print the top 5 rows
-# python -c "import pandas as pd; print(pd.read_parquet('~/Desktop/test.parquet').head())"
