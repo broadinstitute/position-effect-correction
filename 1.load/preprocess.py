@@ -13,6 +13,9 @@ config = {
         "drop_na_columns",
         "blocklist",
     ],
+    # default from https://github.com/cytomining/pycytominer/blob/master/pycytominer/operations/variance_threshold.py
+    # preserves cell counts, inlike feature_select default of 0.1
+    "UNIQUE_CUT": 0.01,
 }
 
 
@@ -54,6 +57,8 @@ def preprocess_profiles(
 
     # feature select
     feature_select_kwargs = feature_select_kwargs or {}
+    if "unique_cut" not in feature_select_kwargs:
+        feature_select_kwargs["unique_cut"] = config["UNIQUE_CUT"]
     if "operation" not in feature_select_kwargs:
         feature_select_kwargs["operation"] = config["FEAT_SELECT_OPS"]
     if "image_features" not in feature_select_kwargs:
