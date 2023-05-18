@@ -1,3 +1,5 @@
+from typing import Optional
+
 import pandas as pd
 
 from scipy.stats import median_abs_deviation
@@ -42,7 +44,7 @@ def mad_robustize_col(col: pd.Series, epsilon: float = 0.0):
     return (col - col.median()) / (col_mad + epsilon)
 
 
-def regress_out_cell_counts(df: pd.DataFrame, cc_col: str, cc_rename: str = None):
+def regress_out_cell_counts(df: pd.DataFrame, cc_col: str, min_unique: int = 100, cc_rename: Optional[str] = None):
     """
     Regress out cell counts from all features in a dataframe.
 
@@ -52,6 +54,8 @@ def regress_out_cell_counts(df: pd.DataFrame, cc_col: str, cc_rename: str = None
         DataFrame of annotated profiles.
     cc_col : str
         Name of column containing cell counts.
+    min_unique : int, optional
+        Minimum number of unique feature values to perform regression.
     cc_rename : str, optional
         Name to rename cell count column to.
 
@@ -59,11 +63,13 @@ def regress_out_cell_counts(df: pd.DataFrame, cc_col: str, cc_rename: str = None
     -------
     df : pandas.core.frame.DataFrame
     """
-    feature_cols = df.filter(regex="^(?!Metadata_)").columns
+    feature_cols = df.filter(regex="^(?!Metadata_)").columns.to_list()
+    feature_cols.remove(cc_col)
 
     for feature in feature_cols:
-        model = ols(f"{feature} ~ {cc_col}", data=df).fit()
-        df[f"{feature}"] = model.resid
+        if df[feature].nunique() > min_unique:
+            model = ols(f"{feature} ~ {cc_col}", data=df).fit()
+            df[f"{feature}"] = model.resid
 
     if cc_rename is not None:
         df.rename(columns={cc_col: cc_rename}, inplace=True)
