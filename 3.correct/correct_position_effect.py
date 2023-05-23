@@ -46,13 +46,13 @@ def mad_robustize_col(col: pd.Series, epsilon: float = 0.0):
     return (col - col.median()) / (col_mad + epsilon)
 
 
-def regress_out_cell_counts(df: pd.DataFrame, cc_col: str, min_unique: int = 100, cc_rename: Optional[str] = None):
+def regress_out_cell_counts(ann_df: pd.DataFrame, cc_col: str, min_unique: int = 100, cc_rename: Optional[str] = None, inplace: bool = True) -> pd.DataFrame:
     """
     Regress out cell counts from all features in a dataframe.
 
     Parameters
     ----------
-    df : pandas.core.frame.DataFrame
+    ann_df : pandas.core.frame.DataFrame
         DataFrame of annotated profiles.
     cc_col : str
         Name of column containing cell counts.
@@ -60,11 +60,15 @@ def regress_out_cell_counts(df: pd.DataFrame, cc_col: str, min_unique: int = 100
         Minimum number of unique feature values to perform regression.
     cc_rename : str, optional
         Name to rename cell count column to.
+    inplace : bool, optional
+        Whether to perform operation in place.
 
     Returns
     -------
     df : pandas.core.frame.DataFrame
     """
+    df = ann_df if inplace else ann_df.copy()
+
     feature_cols = df.filter(regex="^(?!Metadata_)").columns.to_list()
     feature_cols.remove(cc_col)
 
