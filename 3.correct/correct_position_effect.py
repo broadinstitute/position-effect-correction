@@ -5,6 +5,8 @@ import pandas as pd
 from scipy.stats import median_abs_deviation
 from statsmodels.formula.api import ols
 
+from tqdm.auto import tqdm
+
 
 def subtract_well_mean(ann_df: pd.DataFrame) -> pd.DataFrame:
     '''Subtract the mean of each feature per each well.
@@ -66,7 +68,7 @@ def regress_out_cell_counts(df: pd.DataFrame, cc_col: str, min_unique: int = 100
     feature_cols = df.filter(regex="^(?!Metadata_)").columns.to_list()
     feature_cols.remove(cc_col)
 
-    for feature in feature_cols:
+    for feature in tqdm(feature_cols):
         if df[feature].nunique() > min_unique:
             model = ols(f"{feature} ~ {cc_col}", data=df).fit()
             df[f"{feature}"] = model.resid
