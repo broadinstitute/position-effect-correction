@@ -1,3 +1,5 @@
+from typing import Optional
+
 import pandas as pd
 
 # to install pycytominer, run `poetry run pip install <path_to_pycytominer>`
@@ -20,11 +22,11 @@ config = {
 
 
 def preprocess_profiles(
-    ann_dframe,
-    remove_nan_rows=True,
-    normalize_kwargs=None,
-    feature_select_kwargs=None,
-):
+    ann_dframe: pd.DataFrame,
+    remove_nan_rows: bool = True,
+    normalize_kwargs: Optional[dict] = None,
+    feature_select_kwargs: Optional[dict] = None,
+) -> pd.DataFrame:
     """
     Preprocess profiles by normalizing and feature selecting.
 
