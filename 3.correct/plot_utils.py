@@ -75,7 +75,7 @@ def remove_inner_ticklabels(fig: plt.Figure) -> None:
         except:
             pass
 
-# redefine plot_map_per_config with type annotations
+
 def plot_map_per_config(
         config_df: pd.DataFrame,
         config: str,
@@ -85,7 +85,7 @@ def plot_map_per_config(
         style_col: Optional[str] = None,
         y_log: bool = False,
         ax_line: Optional[Any] = None,
-        figsave_path: str = "output"
+        figsave_path: Optional[str] = None
 ) -> None:
     """
     Plot metrics for a given config.
@@ -109,7 +109,7 @@ def plot_map_per_config(
     ax_line : Any, optional
         Axis line to plot, by default None.
     figsave_path : str, optional
-        Path to save figure, by default "output".
+        Path to save figure, by default None.
 
     Returns
     -------
@@ -167,6 +167,9 @@ def plot_map_per_config(
 
     remove_inner_ticklabels(fig)
     plt.tight_layout()
-    figsave_path.mkdir(parents=True, exist_ok=True)
-    plt.savefig(figsave_path / f"{config}_well_mean_correction.png", bbox_inches='tight')
+    
+    if figsave_path is not None:
+        Path(figsave_path).parent.mkdir(parents=True, exist_ok=True)
+        plt.savefig(figsave_path, bbox_inches='tight')
+    
     plt.show()
