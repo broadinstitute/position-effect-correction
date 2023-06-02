@@ -1,5 +1,11 @@
+import string
 from pathlib import Path
+<<<<<<< Updated upstream
 from typing import Any, Union, Optional
+=======
+from typing import Any, Optional, Sequence, Callable
+from typing import SupportsFloat as Numeric
+>>>>>>> Stashed changes
 
 import numpy as np
 import pandas as pd
@@ -159,7 +165,11 @@ def plot_map_per_config(
             ax_scatter.set(yscale="log")
         
         # set x-axis limits based on data range
+<<<<<<< Updated upstream
         max_x = np.min([np.max([subset_df[x_col].max(), max_x]), 1])
+=======
+        max_x = np.fmin(subset_df[x_col].max(), 1)
+>>>>>>> Stashed changes
         ax_scatter.set_xlim(0, max_x)
         
         if i > 0:
@@ -168,10 +178,82 @@ def plot_map_per_config(
 
     remove_inner_ticklabels(fig)
     plt.tight_layout()
+<<<<<<< Updated upstream
     
     if figsave_path is not None:
         figsave_path = Path(figsave_path)
         figsave_path.mkdir(parents=True, exist_ok=True)
         plt.savefig(figsave_path / f"{config}.png", bbox_inches='tight')
     
+=======
+    figsave_path.mkdir(parents=True, exist_ok=True)
+    plt.savefig(figsave_path / f"{config}_well_mean_correction.png", bbox_inches='tight')
+    plt.show()
+
+
+def add_well_location(data: pd.DataFrame) -> pd.DataFrame:
+    """
+    Add x and y location of well to dataframe.
+
+    Parameters
+    ----------
+    data : pd.DataFrame
+        Dataframe of features.
+
+    Returns
+    -------
+    pd.DataFrame
+        Dataframe of features with x and y location of well.
+    """
+    well_list = [(num, lit_i + 1, f"{lit}{num:02}") for lit_i, lit in enumerate(list(string.ascii_uppercase)[15::-1]) for num in range(1, 25)]
+    well_list = pd.DataFrame(well_list, columns=["x_loc", "y_loc", "Metadata_Well"])
+    data = data.merge(well_list, on="Metadata_Well")
+    return data
+
+
+def plot_mean_feature_per_well(
+        data: pd.DataFrame,
+        feature: str,
+        colormap: str = "PRGn",
+        colormap_range: Optional[Sequence[Numeric]]=None
+) -> None:
+    """
+    Plot feature mean per well.
+
+    Parameters
+    ----------
+    data : pd.DataFrame
+        Dataframe of features.
+    feature : str
+        Feature to plot.
+    colormap : str, optional
+        Colormap to use, by default "PRGn".
+    colormap_range : Sequence[Numeric, Numeric], optional
+        Range of colormap, by default None.
+
+    Returns
+    -------
+    None
+    """
+    data = data.groupby("Metadata_Well")[feature].mean().reset_index(drop=False)
+    data = add_well_location(data)
+
+    colormap_range = colormap_range or (data[feature].min(), data[feature].max())
+    colormap_norm = plt.Normalize(*colormap_range)
+
+    fig, ax = plt.subplots(figsize=(10,6))
+    scatter = sns.scatterplot(data=data, x="x_loc", y="y_loc", hue=feature, hue_norm=colormap_norm, palette="PRGn", s=250, legend=False, marker="s")
+    for _, row in data.iterrows():
+        ax.text(row['x_loc'], row['y_loc'], row['Metadata_Well'], color='lightgrey', ha='center', va='center', weight='ultralight', size=7)
+
+    ax.set_aspect('equal')
+    ax.set(xticklabels=[], yticklabels=[], xlabel=None, ylabel=None)
+    ax.set_title(f"{feature}")
+
+    colormap_range = colormap_range or (data[feature].min(), data[feature].max())
+    sm = plt.cm.ScalarMappable(cmap=colormap, norm=colormap_norm)
+    sm.set_array([])
+    fig.colorbar(sm)
+
+>>>>>>> Stashed changes
     plt.show()
