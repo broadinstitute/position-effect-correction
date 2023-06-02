@@ -11,7 +11,8 @@ from tqdm.auto import tqdm
 
 
 def subtract_well_mean(ann_df: pd.DataFrame) -> pd.DataFrame:
-    '''Subtract the mean of each feature per each well.
+    """
+    Subtract the mean of each feature per each well.
     
     Parameters
     ----------
@@ -22,10 +23,41 @@ def subtract_well_mean(ann_df: pd.DataFrame) -> pd.DataFrame:
     -------
     pandas.DataFrame
         Dataframe with features and metadata, with each feature subtracted by the mean of that feature per well.
-    '''
+    """
     feature_cols = ann_df.filter(regex="^(?!Metadata_)").columns
     ann_df[feature_cols] = ann_df.groupby("Metadata_Well")[feature_cols].transform(lambda x: x - x.mean())
     return ann_df
+
+
+def subtract_well_mean_parallel(ann_df: pd.DataFrame, inplace: bool = True) -> pd.DataFrame:
+    """
+    Subtract the mean of each feature per each well in parallel.
+
+    Parameters
+    ----------
+    ann_df : pandas.DataFrame
+        DataFrame of annotated profiles.
+    inplace : bool, optional
+        Whether to perform operation in place.
+
+    Returns
+    -------
+    df : pandas.DataFrame
+    """
+    df = ann_df if inplace else ann_df.copy()
+    feature_cols = df.filter(regex="^(?!Metadata_)").columns.to_list()
+
+    # rewrite main loop to parallelize it
+    def subtract_well_mean_parallel_helper(feature):
+            return {feature: df[feature] - df.groupby("Metadata_Well")[feature].mean()}
+
+    with futures.ThreadPoolExecutor() as executor:
+        results = executor.map(subtract_well_mean_parallel_helper, feature_cols)
+
+    for res in results:
+        df.update(pd.DataFrame(res))
+
+    return df
 
 
 def mad_robustize_col(col: pd.Series, epsilon: float = 0.0):
