@@ -1,11 +1,7 @@
 import string
 from pathlib import Path
-<<<<<<< Updated upstream
-from typing import Any, Union, Optional
-=======
 from typing import Any, Optional, Sequence, Callable
 from typing import SupportsFloat as Numeric
->>>>>>> Stashed changes
 
 import numpy as np
 import pandas as pd
@@ -91,7 +87,7 @@ def plot_map_per_config(
         style_col: Optional[str] = None,
         y_log: bool = False,
         ax_line: Optional[Any] = None,
-        figsave_path: Optional[Union[str, Path]] = None
+        figsave_path: str = "output"
 ) -> None:
     """
     Plot metrics for a given config.
@@ -115,7 +111,7 @@ def plot_map_per_config(
     ax_line : Any, optional
         Axis line to plot, by default None.
     figsave_path : str, optional
-        Path to save figure, by default None.
+        Path to save figure, by default "output".
 
     Returns
     -------
@@ -139,7 +135,6 @@ def plot_map_per_config(
         )
         kde_axes[i] = fig.add_subplot(gs[5, i], sharex=scatter_axes[i], sharey=None if i == 0 else kde_axes[0])
 
-    max_x = 0
     for i, subset in enumerate(subsets):
         subset_df = config_df[config_df['subset'] == subset]
         p_value = subset_df['p<0.05']
@@ -165,11 +160,7 @@ def plot_map_per_config(
             ax_scatter.set(yscale="log")
         
         # set x-axis limits based on data range
-<<<<<<< Updated upstream
-        max_x = np.min([np.max([subset_df[x_col].max(), max_x]), 1])
-=======
         max_x = np.fmin(subset_df[x_col].max(), 1)
->>>>>>> Stashed changes
         ax_scatter.set_xlim(0, max_x)
         
         if i > 0:
@@ -178,14 +169,6 @@ def plot_map_per_config(
 
     remove_inner_ticklabels(fig)
     plt.tight_layout()
-<<<<<<< Updated upstream
-    
-    if figsave_path is not None:
-        figsave_path = Path(figsave_path)
-        figsave_path.mkdir(parents=True, exist_ok=True)
-        plt.savefig(figsave_path / f"{config}.png", bbox_inches='tight')
-    
-=======
     figsave_path.mkdir(parents=True, exist_ok=True)
     plt.savefig(figsave_path / f"{config}_well_mean_correction.png", bbox_inches='tight')
     plt.show()
@@ -255,5 +238,4 @@ def plot_mean_feature_per_well(
     sm.set_array([])
     fig.colorbar(sm)
 
->>>>>>> Stashed changes
     plt.show()
