@@ -13,23 +13,27 @@ from tqdm.auto import tqdm
 def subtract_well_mean(ann_df: pd.DataFrame) -> pd.DataFrame:
     """
     Subtract the mean of each feature per each well.
-    
+
     Parameters
     ----------
     ann_df : pandas.DataFrame
         Dataframe with features and metadata.
-    
+
     Returns
     -------
     pandas.DataFrame
         Dataframe with features and metadata, with each feature subtracted by the mean of that feature per well.
     """
     feature_cols = ann_df.filter(regex="^(?!Metadata_)").columns
-    ann_df[feature_cols] = ann_df.groupby("Metadata_Well")[feature_cols].transform(lambda x: x - x.mean())
+    ann_df[feature_cols] = ann_df.groupby("Metadata_Well")[feature_cols].transform(
+        lambda x: x - x.mean()
+    )
     return ann_df
 
 
-def subtract_well_mean_parallel(ann_df: pd.DataFrame, inplace: bool = True) -> pd.DataFrame:
+def subtract_well_mean_parallel(
+    ann_df: pd.DataFrame, inplace: bool = True
+) -> pd.DataFrame:
     """
     Subtract the mean of each feature per each well in parallel.
 
@@ -49,7 +53,7 @@ def subtract_well_mean_parallel(ann_df: pd.DataFrame, inplace: bool = True) -> p
 
     # rewrite main loop to parallelize it
     def subtract_well_mean_parallel_helper(feature):
-            return {feature: df[feature] - df.groupby("Metadata_Well")[feature].mean()}
+        return {feature: df[feature] - df.groupby("Metadata_Well")[feature].mean()}
 
     with futures.ThreadPoolExecutor() as executor:
         results = executor.map(subtract_well_mean_parallel_helper, feature_cols)
@@ -63,7 +67,7 @@ def subtract_well_mean_parallel(ann_df: pd.DataFrame, inplace: bool = True) -> p
 def mad_robustize_col(col: pd.Series, epsilon: float = 0.0):
     """
     Robustize a column by median absolute deviation.
-    
+
     Parameters
     ----------
     col : pandas.core.series.Series
@@ -76,11 +80,17 @@ def mad_robustize_col(col: pd.Series, epsilon: float = 0.0):
     col : pandas.core.series.Series
         Robustized column.
     """
-    col_mad = median_abs_deviation(col, nan_policy="omit", scale=1/1.4826)
+    col_mad = median_abs_deviation(col, nan_policy="omit", scale=1 / 1.4826)
     return (col - col.median()) / (col_mad + epsilon)
 
 
-def regress_out_cell_counts(ann_df: pd.DataFrame, cc_col: str, min_unique: int = 100, cc_rename: Optional[str] = None, inplace: bool = True) -> pd.DataFrame:
+def regress_out_cell_counts(
+    ann_df: pd.DataFrame,
+    cc_col: str,
+    min_unique: int = 100,
+    cc_rename: Optional[str] = None,
+    inplace: bool = True,
+) -> pd.DataFrame:
     """
     Regress out cell counts from all features in a dataframe.
 
@@ -105,7 +115,9 @@ def regress_out_cell_counts(ann_df: pd.DataFrame, cc_col: str, min_unique: int =
 
     feature_cols = df.filter(regex="^(?!Metadata_)").columns.to_list()
     feature_cols.remove(cc_col)
-    feature_cols = [feature for feature in feature_cols if df[feature].nunique() > min_unique]
+    feature_cols = [
+        feature for feature in feature_cols if df[feature].nunique() > min_unique
+    ]
 
     for feature in tqdm(feature_cols):
         model = ols(f"{feature} ~ {cc_col}", data=df).fit()
@@ -117,7 +129,13 @@ def regress_out_cell_counts(ann_df: pd.DataFrame, cc_col: str, min_unique: int =
 
 
 # rewrite regress_out_cell_counts to parallelize it with concurrent.futures
-def regress_out_cell_counts_parallel(ann_df: pd.DataFrame, cc_col: str, min_unique: int = 100, cc_rename: Optional[str] = None, inplace: bool = True) -> pd.DataFrame:
+def regress_out_cell_counts_parallel(
+    ann_df: pd.DataFrame,
+    cc_col: str,
+    min_unique: int = 100,
+    cc_rename: Optional[str] = None,
+    inplace: bool = True,
+) -> pd.DataFrame:
     """
     Regress out cell counts from all features in a dataframe in parallel.
 
@@ -142,12 +160,14 @@ def regress_out_cell_counts_parallel(ann_df: pd.DataFrame, cc_col: str, min_uniq
 
     feature_cols = df.filter(regex="^(?!Metadata_)").columns.to_list()
     feature_cols.remove(cc_col)
-    feature_cols = [feature for feature in feature_cols if df[feature].nunique() > min_unique]
+    feature_cols = [
+        feature for feature in feature_cols if df[feature].nunique() > min_unique
+    ]
 
     # rewrite main loop to parallelize it
     def regress_out_cell_counts_parallel_helper(feature):
-            model = ols(f"{feature} ~ {cc_col}", data=df).fit()
-            return {feature: model.resid}
+        model = ols(f"{feature} ~ {cc_col}", data=df).fit()
+        return {feature: model.resid}
 
     with futures.ThreadPoolExecutor() as executor:
         results = executor.map(regress_out_cell_counts_parallel_helper, feature_cols)

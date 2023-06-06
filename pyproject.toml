@@ -23,7 +23,7 @@ scikit-learn = "^1.2.2"
 tqdm = "^4.65.0"
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.3.0"
+black = {extras = ["jupyter"], version = "^23.3.0"}
 ipykernel = "^6.21.2"
 jupyter = "^1.0.0"
 flake8 = "^6.0.0"
