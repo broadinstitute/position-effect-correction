@@ -87,7 +87,7 @@ def plot_map_per_config(
         style_col: Optional[str] = None,
         y_log: bool = False,
         ax_line: Optional[Any] = None,
-        figsave_path: str = "output"
+        figsave_path: Optional[Union[Path, str]] = None
 ) -> None:
     """
     Plot metrics for a given config.
@@ -110,9 +110,8 @@ def plot_map_per_config(
         Whether to use log scale for y-axis, by default False.
     ax_line : Any, optional
         Axis line to plot, by default None.
-    figsave_path : str, optional
-        Path to save figure, by default "output".
-
+    figsave_path : Optional[Union[Path, str]], optional
+        Path to save figure, by default None.
     Returns
     -------
     None
@@ -135,6 +134,7 @@ def plot_map_per_config(
         )
         kde_axes[i] = fig.add_subplot(gs[5, i], sharex=scatter_axes[i], sharey=None if i == 0 else kde_axes[0])
 
+    max_x = 0
     for i, subset in enumerate(subsets):
         subset_df = config_df[config_df['subset'] == subset]
         p_value = subset_df['p<0.05']
@@ -160,7 +160,7 @@ def plot_map_per_config(
             ax_scatter.set(yscale="log")
         
         # set x-axis limits based on data range
-        max_x = np.fmin(subset_df[x_col].max(), 1)
+        max_x = np.min([np.max([subset_df[x_col].max(), max_x]), 1])
         ax_scatter.set_xlim(0, max_x)
         
         if i > 0:
@@ -169,8 +169,12 @@ def plot_map_per_config(
 
     remove_inner_ticklabels(fig)
     plt.tight_layout()
-    figsave_path.mkdir(parents=True, exist_ok=True)
-    plt.savefig(figsave_path / f"{config}_well_mean_correction.png", bbox_inches='tight')
+    
+    if figsave_path is not None:
+        figsave_path = Path(figsave_path)
+        figsave_path.mkdir(parents=True, exist_ok=True)
+        plt.savefig(figsave_path / f"{config}.png", bbox_inches='tight')
+    
     plt.show()
 
 
