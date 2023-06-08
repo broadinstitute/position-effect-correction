@@ -1,4 +1,3 @@
-# @package _global_
 well:
   # path to cloned https://github.com/jump-cellpainting/datasets
   path: ../../datasets/metadata
