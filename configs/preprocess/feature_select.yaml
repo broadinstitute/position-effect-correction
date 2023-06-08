@@ -1,0 +1,10 @@
+feature_select:
+  feature_whitelist:
+    - Cells_Count
+  operation:
+    - variance_threshold
+    - correlation_threshold
+    - drop_na_columns
+    - blocklist
+  unique_cut: 0.01
+  image_features: True

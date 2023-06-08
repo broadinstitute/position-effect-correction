@@ -1,6 +1,7 @@
+"""Utility functions for plotting."""
 import string
 from pathlib import Path
-from typing import Any, Optional, Sequence, Union
+from typing import Any, Optional, Sequence, Union, List
 from typing import SupportsFloat as Numeric
 
 import numpy as np
@@ -64,7 +65,7 @@ def load_metrics(
     return metrics_df
 
 
-def remove_inner_ticklabels(fig: plt.Figure) -> None:
+def remove_inner_ticklabels(fig: plt.Figure):
     """
     Remove inner ticklabels from a figure.
 
@@ -72,16 +73,29 @@ def remove_inner_ticklabels(fig: plt.Figure) -> None:
     ----------
     fig : matplotlib.figure.Figure
         Figure to remove inner ticklabels from.
-
-    Returns
-    -------
-    None
     """
     for ax in fig.axes:
         try:
             ax.label_outer()
-        except:
+        except AttributeError:
             pass
+
+
+def save_figure(figsave_path: Union[Path, str], figsave_name: str):
+    """
+    Save figure.
+
+    Parameters
+    ----------
+    figsave_path : Union[Path, str]
+        Path to save figure.
+    figsave_name : str
+        Name of figure.
+    """
+    if figsave_path is not None:
+        figsave_path = Path(figsave_path)
+        figsave_path.mkdir(parents=True, exist_ok=True)
+        plt.savefig(figsave_path / f"{figsave_name}.png", bbox_inches="tight")
 
 
 def plot_map_per_config(
@@ -94,7 +108,7 @@ def plot_map_per_config(
     y_log: bool = False,
     ax_line: Optional[Any] = None,
     figsave_path: Optional[Union[Path, str]] = None,
-) -> None:
+):
     """
     Plot metrics for a given config.
 
@@ -118,9 +132,6 @@ def plot_map_per_config(
         Axis line to plot, by default None.
     figsave_path : Optional[Union[Path, str]], optional
         Path to save figure, by default None.
-    Returns
-    -------
-    None
     """
     subsets = config_df["subset"].unique()
     n_subsets = len(subsets)
@@ -184,12 +195,7 @@ def plot_map_per_config(
 
     remove_inner_ticklabels(fig)
     plt.tight_layout()
-
-    if figsave_path is not None:
-        figsave_path = Path(figsave_path)
-        figsave_path.mkdir(parents=True, exist_ok=True)
-        plt.savefig(figsave_path / f"{config}.png", bbox_inches="tight")
-
+    save_figure(figsave_path, f"{config}_map")
     plt.show()
 
 
@@ -224,7 +230,7 @@ def plot_mean_feature_per_well(
     colormap: str = "PRGn",
     colormap_range: Optional[Sequence[Numeric]] = None,
     figsave_path: Optional[Union[Path, str]] = None,
-) -> None:
+):
     """
     Plot feature mean per well.
 
@@ -238,10 +244,6 @@ def plot_mean_feature_per_well(
         Colormap to use, by default "PRGn".
     colormap_range : Sequence[Numeric, Numeric], optional
         Range of colormap, by default None.
-
-    Returns
-    -------
-    None
     """
     data = data.groupby("Metadata_Well")[feature].mean().reset_index(drop=False)
     data = add_well_location(data)
@@ -250,7 +252,7 @@ def plot_mean_feature_per_well(
     colormap_norm = plt.Normalize(*colormap_range)
 
     fig, ax = plt.subplots(figsize=(10, 6))
-    scatter = sns.scatterplot(
+    _ = sns.scatterplot(
         data=data,
         x="x_loc",
         y="y_loc",
@@ -281,12 +283,49 @@ def plot_mean_feature_per_well(
     sm = plt.cm.ScalarMappable(cmap=colormap, norm=colormap_norm)
     sm.set_array([])
     fig.colorbar(sm)
+    save_figure(figsave_path, f"{prefix}_{feature}_mean_per_well")
+    plt.show()
 
-    if figsave_path is not None:
-        figsave_path = Path(figsave_path)
-        figsave_path.mkdir(parents=True, exist_ok=True)
-        plt.savefig(
-            figsave_path / f"{prefix}_{feature}_mean_per_well.png", bbox_inches="tight"
-        )
 
+def plot_unique_value_hist(
+    data: pd.DataFrame,
+    bins: int = 20,
+    unique_ratio_cutoff: float = 0.1,
+    features: Optional[Union[List[str], str]] = None,
+    figsave_path: Optional[Union[Path, str]] = None,
+    figsave_prefix: Optional[Union[Path, str]] = None,
+):
+    """
+    Plot distribution of unique/size ratio per feature.
+
+    Parameters
+    ----------
+    data : pd.DataFrame
+        Dataframe of features.
+    bins : int, optional
+        Number of bins, by default 20.
+    unique_ratio_cutoff : float, optional
+        Cutoff for unique/size ratio, by default 0.1.
+    features : Optional[Union[List[str], str]], optional
+        List of features to highlight, by default None.
+    figsave_path : Optional[Union[Path, str]], optional
+        Path to save figure, by default None.
+    figsave_prefix : Optional[Union[Path, str]], optional
+        Prefix for figure name, by default None.
+    """
+    unique_ratio = data.filter(regex="^(?!Metadata_)").nunique() / data.shape[0]
+    unique_ratio[unique_ratio < unique_ratio_cutoff].plot(
+        kind="hist",
+        bins=bins,
+        title=f"Unique/size ratio per feature (<{unique_ratio_cutoff})",
+    )
+    if features is not None:
+        features = [features] if isinstance(features, str) else features
+        for feature in features:
+            feature_ratio = unique_ratio[feature]
+            plt.axvline(x=feature_ratio, color="red")
+            plt.text(feature_ratio, 0.1, f"{feature_ratio:.3f}", color="red")
+
+    figsave_prefix = figsave_prefix or ""
+    save_figure(figsave_path, f"{figsave_prefix}_unique_ratio_hist")
     plt.show()

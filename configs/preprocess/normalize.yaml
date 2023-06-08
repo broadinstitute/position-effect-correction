@@ -1,0 +1,5 @@
+normalize:
+  group: Metadata_Plate
+  method: mad_robustize
+  mad_robustize_epsilon: 0.0
+  image_features: True

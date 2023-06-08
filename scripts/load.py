@@ -1,7 +1,11 @@
-# -*- coding: utf-8 -*-
+"""Functions for loading metadata and profiles."""
 
 import logging
-from typing import Optional
+from typing import Optional, Union
+
+from pathlib import Path
+from functools import reduce
+from omegaconf import OmegaConf, dictconfig
 
 import pandas as pd
 
@@ -20,7 +24,96 @@ logging.basicConfig(
 )
 
 
-def load(
+def load_config(config_path: Union[Path, str]) -> dictconfig.DictConfig:
+    """
+    Load configs from a directory or file.
+
+    Parameters
+    ----------
+    config_path : Union[Path, str]
+        Path to config directory or file.
+
+    Returns
+    -------
+    dict
+        Dictionary of configs.
+    """
+    if isinstance(config_path, (str)):
+        config_path = Path(config_path)
+
+    if config_path.is_dir():
+        configs = [
+            OmegaConf.load(meta_conf) for meta_conf in config_path.glob("*.yaml")
+        ]
+        return OmegaConf.merge(*configs)
+    else:
+        return OmegaConf.load(config_path)
+
+
+def read_config_data(config: dictconfig.DictConfig) -> pd.DataFrame:
+    """
+    Read metadata from a directory or file.
+
+    Parameters
+    ----------
+    metadata_config : dict
+        Metadata config.
+
+    Returns
+    -------
+    pd.DataFrame
+        Metadata dataframe.
+    """
+    data_path = Path(config.path).glob(config.files)
+    data = (
+        pd.read_parquet(f) if f.suffix == ".parquet" else pd.read_csv(f)
+        for f in data_path
+    )
+    data = pd.concat(data, ignore_index=True)
+    if "drop" in config:
+        data = data.drop(config.drop, axis=1)
+    if "rename" in config:
+        data = data.rename(columns=config.rename)
+    if "filter" in config:
+        data = data.query(config.filter)
+        data.reset_index(drop=True, inplace=True)
+    return data
+
+
+def merge_metadata(meta_config: dictconfig.DictConfig) -> pd.DataFrame:
+    """
+    Merge metadata from multiple sources.
+
+    Parameters
+    ----------
+    meta_config : dictconfig.DictConfig
+        Metadata config.
+
+    Returns
+    -------
+    pd.DataFrame
+    """
+    dataframes = []
+    merge_on_fields = []
+    merge_orders = []
+
+    def inner_merge(left, right):
+        return pd.merge(left, right[0], on=right[1], how="inner")
+
+    for config in meta_config.values():
+        dataframes.append(read_config_data(config))
+        merge_on_fields.append(OmegaConf.to_object(config["merge_on"]))
+        merge_orders.append(config["merge_order"])
+
+    # zip the three lists together
+    zipped_list = sorted(
+        list(zip(dataframes, merge_on_fields, merge_orders)), key=lambda x: x[2]
+    )
+    merged_data = reduce(inner_merge, zipped_list[1:], zipped_list[0][0])
+    return merged_data
+
+
+def load_data(
     dataset: str,
     source: str,
     component: str,
@@ -68,11 +161,10 @@ def load(
     >>> --batch 2021_06_14_Batch6 \
     >>> --plate BR00121429 \
     >>> --output ~/Desktop/test.parquet
-    
+
     Print the top 5 rows
     >>> python -c "import pandas as pd; print(pd.read_parquet('~/Desktop/test.parquet').head())"
     """
-
     # Checks
     if output is not None:
         assert isinstance(output, str), "`output` must be a string"
@@ -133,4 +225,4 @@ def load(
 
 
 if __name__ == "__main__":
-    fire.Fire(load)
+    fire.Fire(load_data)
