@@ -30,7 +30,6 @@ def normalize_profiles(
     ann_dframe: pd.DataFrame,
     normalize_group: Optional[str] = None,
     normalize_kwargs: Optional[dict] = None,
-    config: dict = None,
 ) -> pd.DataFrame:
     """
     Normalize profiles.
@@ -43,8 +42,6 @@ def normalize_profiles(
         Column name to group by for normalization.
     normalize_kwargs : dict, optional
         Keyword arguments to pass to `pycytominer.normalize.normalize`.
-    config : dict, optional
-        Configuration dictionary.
 
     Returns
     -------
@@ -52,10 +49,6 @@ def normalize_profiles(
         DataFrame of annotated profiles after normalization.
     """
     normalize_kwargs = normalize_kwargs or {}
-    if config is not None:
-        normalize_group = normalize_group or config.get("group")
-        for key in ["method", "mad_robustize_epsilon", "image_features"]:
-            normalize_kwargs[key] = normalize_kwargs.get(key, config.get(key))
 
     if normalize_group is not None:
         ann_dframe = ann_dframe.groupby(normalize_group, group_keys=True).apply(
@@ -72,7 +65,6 @@ def select_features(
     ann_dframe: pd.DataFrame,
     feature_select_kwargs: Optional[dict] = None,
     feature_whitelist: Optional[list[str]] = None,
-    config: dict = None,
 ) -> pd.DataFrame:
     """
     Select features.
@@ -85,8 +77,6 @@ def select_features(
         Keyword arguments to pass to `pycytominer.feature_select.feature_select`.
     feature_select_whitelist : list[str], optional
         List of features to preserve.
-    config : dict, optional
-        Configuration dictionary.
 
     Returns
     -------
@@ -94,10 +84,6 @@ def select_features(
         DataFrame of annotated profiles after feature selection.
     """
     feature_select_kwargs = feature_select_kwargs or {}
-    if config is not None:
-        feature_whitelist = feature_whitelist or config.get("feature_whitelist")
-        for key in ["unique_cut", "operation", "image_features"]:
-            feature_select_kwargs[key] = feature_select_kwargs.get(key, config.get(key))
 
     # preserve features in whitelist
     if feature_whitelist is not None:
@@ -119,7 +105,6 @@ def preprocess_profiles(
     normalize_kwargs: Optional[dict] = None,
     feature_select_kwargs: Optional[dict] = None,
     feature_select_whitelist: Optional[list[str]] = None,
-    config: dict = None,
 ) -> pd.DataFrame:
     """
     Preprocess profiles by normalizing and selecting features.
@@ -138,19 +123,16 @@ def preprocess_profiles(
         Keyword arguments to pass to `pycytominer.feature_select.feature_select`.
     feature_select_whitelist : list[str], optional
         List of features to preserve.
-    config : dict, optional
-        Configuration dictionary.
 
     Returns
     -------
     ann_dframe : pd.DataFrame
         DataFrame of annotated profiles after preprocessing.
     """
-    ann_dframe = normalize_profiles(
-        ann_dframe, normalize_group, normalize_kwargs, config
-    )
+    ann_dframe = normalize_profiles(ann_dframe, normalize_group, normalize_kwargs)
+
     ann_dframe = select_features(
-        ann_dframe, feature_select_kwargs, feature_select_whitelist, config
+        ann_dframe, feature_select_kwargs, feature_select_whitelist
     )
 
     # remove rows with any NaNs in features
