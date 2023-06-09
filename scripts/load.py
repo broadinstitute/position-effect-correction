@@ -5,7 +5,7 @@ from typing import Optional, Union
 
 from pathlib import Path
 from functools import reduce
-from omegaconf import OmegaConf, dictconfig
+from omegaconf import OmegaConf
 
 import pandas as pd
 
@@ -24,7 +24,7 @@ logging.basicConfig(
 )
 
 
-def load_config(config_path: Union[Path, str]) -> dictconfig.DictConfig:
+def load_config(config_path: Union[Path, str]) -> dict:
     """
     Load configs from a directory or file.
 
@@ -42,15 +42,15 @@ def load_config(config_path: Union[Path, str]) -> dictconfig.DictConfig:
         config_path = Path(config_path)
 
     if config_path.is_dir():
-        configs = [
-            OmegaConf.load(meta_conf) for meta_conf in config_path.glob("*.yaml")
-        ]
-        return OmegaConf.merge(*configs)
+        config = [OmegaConf.load(meta_conf) for meta_conf in config_path.glob("*.yaml")]
+        config = OmegaConf.merge(*config)
     else:
-        return OmegaConf.load(config_path)
+        config = OmegaConf.load(config_path)
+
+    return OmegaConf.to_object(config)
 
 
-def read_config_data(config: dictconfig.DictConfig) -> pd.DataFrame:
+def read_config_data(config: dict) -> pd.DataFrame:
     """
     Read metadata from a directory or file.
 
@@ -64,29 +64,29 @@ def read_config_data(config: dictconfig.DictConfig) -> pd.DataFrame:
     pd.DataFrame
         Metadata dataframe.
     """
-    data_path = Path(config.path).glob(config.files)
+    data_path = Path(config["path"]).glob(config["files"])
     data = (
         pd.read_parquet(f) if f.suffix == ".parquet" else pd.read_csv(f)
         for f in data_path
     )
     data = pd.concat(data, ignore_index=True)
     if "drop" in config:
-        data = data.drop(config.drop, axis=1)
+        data = data.drop(config["drop"], axis=1)
     if "rename" in config:
-        data = data.rename(columns=config.rename)
+        data = data.rename(columns=config["rename"])
     if "filter" in config:
-        data = data.query(config.filter)
+        data = data.query(config["filter"])
         data.reset_index(drop=True, inplace=True)
     return data
 
 
-def merge_metadata(meta_config: dictconfig.DictConfig) -> pd.DataFrame:
+def merge_metadata(meta_config: dict) -> pd.DataFrame:
     """
     Merge metadata from multiple sources.
 
     Parameters
     ----------
-    meta_config : dictconfig.DictConfig
+    meta_config : dict
         Metadata config.
 
     Returns
@@ -102,7 +102,7 @@ def merge_metadata(meta_config: dictconfig.DictConfig) -> pd.DataFrame:
 
     for config in meta_config.values():
         dataframes.append(read_config_data(config))
-        merge_on_fields.append(OmegaConf.to_object(config["merge_on"]))
+        merge_on_fields.append(config["merge_on"])
         merge_orders.append(config["merge_order"])
 
     # zip the three lists together
