@@ -1,6 +1,6 @@
-feature_select:
-  feature_whitelist:
-    - Cells_Count
+feature_select_whitelist:
+  - Cells_Count
+feature_select_kwargs:
   operation:
     - variance_threshold
     - correlation_threshold
