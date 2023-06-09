@@ -129,7 +129,6 @@ def regress_out_cell_counts(
     return df
 
 
-# rewrite regress_out_cell_counts to parallelize it with concurrent.futures
 def regress_out_cell_counts_parallel(
     ann_df: pd.DataFrame,
     cc_col: str,
@@ -165,7 +164,6 @@ def regress_out_cell_counts_parallel(
         feature for feature in feature_cols if df[feature].nunique() > min_unique
     ]
 
-    # rewrite main loop to parallelize it
     def regress_out_cell_counts_parallel_helper(feature):
         model = ols(f"{feature} ~ {cc_col}", data=df).fit()
         return {feature: model.resid}

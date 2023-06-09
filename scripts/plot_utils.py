@@ -313,18 +313,29 @@ def plot_unique_value_hist(
     figsave_prefix : Optional[Union[Path, str]], optional
         Prefix for figure name, by default None.
     """
+
+    def data_to_axes_x(x, ax):
+        return (x - ax.get_xlim()[0]) / (ax.get_xlim()[1] - ax.get_xlim()[0])
+
     unique_ratio = data.filter(regex="^(?!Metadata_)").nunique() / data.shape[0]
-    unique_ratio[unique_ratio < unique_ratio_cutoff].plot(
+    ax = unique_ratio[unique_ratio < unique_ratio_cutoff].plot(
         kind="hist",
         bins=bins,
         title=f"Unique/size ratio per feature (<{unique_ratio_cutoff})",
     )
+
     if features is not None:
         features = [features] if isinstance(features, str) else features
         for feature in features:
             feature_ratio = unique_ratio[feature]
-            plt.axvline(x=feature_ratio, color="red")
-            plt.text(feature_ratio, 0.1, f"{feature_ratio:.3f}", color="red")
+            ax.axvline(x=feature_ratio, color="red")
+            ax.text(
+                data_to_axes_x(feature_ratio, ax),
+                0.1,
+                f"{feature_ratio:.3f}",
+                color="red",
+                transform=ax.transAxes,
+            )
 
     figsave_prefix = figsave_prefix or ""
     save_figure(figsave_path, f"{figsave_prefix}_unique_ratio_hist")
