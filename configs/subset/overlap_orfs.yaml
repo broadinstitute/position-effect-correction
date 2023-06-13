@@ -1,0 +1,17 @@
+# see https://github.com/jump-cellpainting/jump-cellpainting/issues/78#issuecomment-805942281
+overlap_orfs:
+  path: ../1.load/output
+  files: raw_filtered_profiles.parquet
+  filter: Metadata_plate_map_name in ${.plates}
+  plates:
+    - "OKA05.06.07.08.A"
+    - "OAB84.85.86.87.A"
+    - "OAA97.98.99.XX.A"
+    - "OAB25.26.27.28.A"
+    - "OAB41.OAC17.OAB78.79.A"
+    - "OAA49.59.79.80.A"
+    - "OAA58.60.61.62.A"
+    - "OAA85.86.87.88.A"
+    - "OAB13.14.15.16.A"
+    - "OAB33.34.35.36.A"
+    - "OAB37.38.39.40.A"

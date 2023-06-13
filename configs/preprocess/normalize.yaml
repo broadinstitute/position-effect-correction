@@ -1,0 +1,5 @@
+normalize_group: Metadata_Plate
+normalize_kwargs:
+  method: mad_robustize
+  mad_robustize_epsilon: 0.0
+  image_features: True
