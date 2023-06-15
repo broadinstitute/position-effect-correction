@@ -12,3 +12,5 @@ For Linux, see
 
 - <https://github.com/python-poetry/poetry/issues/1917#issuecomment-1380429197> if installing six fails
 - <https://stackoverflow.com/a/75435100> if you get "does not contain any element" warning when running `poetry install`
+
+To update a poetry environment, run `poetry update` and `poetry install --no-root` again.
