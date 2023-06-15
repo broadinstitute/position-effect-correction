@@ -1,0 +1,8 @@
+plate:
+  # path to cloned https://github.com/jump-cellpainting/datasets
+  path: ../../datasets/metadata
+  files: plate.csv.gz
+  merge_order: 4
+  merge_on:
+    - Metadata_Source
+    - Metadata_Plate
