@@ -1,5 +1,5 @@
 profile:
-  path: ../5.load-dino/input/
+  path: ../5.load-dino/output/
   files: sphering_mad_robustize_profiles.parquet
   merge_order: 5
   merge_on:
