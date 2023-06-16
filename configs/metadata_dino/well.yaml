@@ -1,0 +1,7 @@
+well:
+  # path to cloned https://github.com/jump-cellpainting/datasets
+  path: ../../datasets/metadata
+  files: well.csv.gz
+  merge_order: 1
+  merge_on:
+    - Metadata_JCP2022

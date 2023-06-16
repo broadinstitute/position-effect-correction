@@ -140,3 +140,4 @@ dmypy.json
 
 # Archived
 *.gz
+.vscode/settings.json

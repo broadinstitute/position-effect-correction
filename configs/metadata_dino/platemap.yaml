@@ -1,0 +1,10 @@
+platemap:
+  # path to cloned https://github.com/jump-cellpainting/jump-orf-data
+  path: ../../morphmap/jump-orf-data/metadata/platemaps
+  files: "*/*.csv"
+  rename:
+    Assay_Plate_Barcode: Metadata_Plate
+    Plate_Map_Name: Metadata_plate_map_name
+  merge_order: 2
+  merge_on:
+    - Metadata_Plate

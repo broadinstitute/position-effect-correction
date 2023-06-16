@@ -1,0 +1,8 @@
+profile:
+  path: ../5.load-dino/output/
+  files: sphering_mad_robustize_profiles.parquet
+  merge_order: 5
+  merge_on:
+    - Metadata_Plate
+    - Metadata_Well
+    - Metadata_Source
