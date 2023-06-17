@@ -1,0 +1,8 @@
+orf:
+  # path to cloned https://github.com/jump-cellpainting/datasets
+  path: ../../datasets/metadata
+  files: orf.csv.gz
+  filter: "Metadata_Symbol == Metadata_Symbol & Metadata_broad_sample != 'BAD CONSTRUCT' & Metadata_pert_type != 'poscon'"
+  merge_order: 0
+  merge_on:
+    - Metadata_JCP2022

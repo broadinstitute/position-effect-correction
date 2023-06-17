@@ -1,0 +1,17 @@
+profile:
+  path: ../1.load/input
+  files: raw_profiles.parquet
+  rename:
+    dataset: Metadata_Batch
+  # see https://github.com/broadinstitute/position-effect-correction/pull/4#discussion_r1158626931
+  drop:
+    - source
+    - workspace
+    - profiles
+    - batch
+    - plate
+  merge_order: 4
+  merge_on:
+    - Metadata_Plate
+    - Metadata_Well
+    - Metadata_Source

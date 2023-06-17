@@ -1,0 +1,12 @@
+cell_count:
+  # path to cloned morphmap repo https://github.com/jump-cellpainting/morphmap
+  path: ../../morphmap/0.explore-data/output
+  files: cell_counts.csv.gz
+  rename:
+    Metadata_Count_Cells: Cells_Count
+  merge_order: 3
+  merge_on:
+    - Metadata_plate_map_name
+    - Metadata_Well
+    - Metadata_Plate
+    - Metadata_broad_sample
