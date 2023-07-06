@@ -59,4 +59,5 @@ experiment:
     annotation_cols:
       - Metadata_JCP2022
       - Metadata_Well
+      - Metadata_Plate
       - Metadata_reference_or_other
